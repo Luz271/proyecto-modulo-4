@@ -45,6 +45,22 @@ Durante las siguientes versiones se desarrollarán:
 - Pruebas automatizadas con Jest.
 - Git y GitHub.
 
+## Modelos
+
+### Banco.js
+
+Sus responsabilidades:
+
+- `agregarUsuario()`
+- `buscarUsuarioPorId()`
+- `agregarCuenta()`
+- `buscarCuentaPorId()`
+- `buscarCuentaPorNumero()`
+- `obtenerCuentasDeUsuario()`
+- `registrarMovimiento()`
+- `obtenerMovimientosDeCuenta()`
+- `realizarDeposito()`
+
 ## Versión actual
 
-v0.3.0 — Estructura inicial del proyecto.
+v0.4.0 — Modelo Banco y reglas del dominio bancario.
