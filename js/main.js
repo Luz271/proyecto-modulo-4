@@ -1,5 +1,5 @@
 // Importamos modelos de usuario, cuenta y movimiento
-import { Usuario } from "./models/usuario.js";
+import { Usuario } from "./models/Usuario.js";
 import { Cuenta } from "./models/Cuenta.js";
 
 // Importamos helpers, validadores y formateadores

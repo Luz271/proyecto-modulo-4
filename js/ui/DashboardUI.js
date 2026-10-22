@@ -1,33 +1,170 @@
-//Importar Auth Service
+//Importamos
 import { authService } from "../services/AuthService.js";
 
-//Mostrar Usuario
-function mostrarUsuario() {
-  //obtener usuario
-  const usuario = authService.getCurrentUser();
-  //Validar Usuario
-  if (!usuario) {
+import { bancoService } from "../services/BancoService.js";
+
+import { formatCurrency, formatAccountNumber } from "../utils/formatters.js";
+
+function renderDashboard(resumen) {
+  const root = document.querySelector("#dashboardRoot");
+
+  if (!root) {
     return;
   }
-  //obtener elemento del DOM
-  const nombreUsuario = document.querySelector("#nombreUsuario");
-  //Mostrar Nombre
-  if (nombreUsuario) {
-    nombreUsuario.textContent = `Sesión iniciada como ${usuario.nombre}`;
-  }
+
+  const { usuario, cuentas, saldoTotal, totalCuentas, totalMovimientos } =
+    resumen;
+
+  const cuentaPrincipal = cuentas[0] || null;
+  //Creamos la interfaz con ayuda de html
+  root.innerHTML = `
+        <section
+            class="dashboard-welcome"
+        >
+            <div>
+                <p
+                    class="dashboard-label"
+                >
+                    Bienvenido
+                </p>
+
+                <h2>
+                    ${usuario.nombre}
+                </h2>
+
+                <p>
+                    Consulta el estado
+                    actual de tus cuentas.
+                </p>
+            </div>
+        </section>
+
+
+        <section
+            class="summary-grid"
+        >
+
+            <article
+                class="summary-card"
+            >
+                <span>
+                    Saldo total
+                </span>
+
+                <strong>
+                    ${formatCurrency(saldoTotal)}
+                </strong>
+            </article>
+
+
+            <article
+                class="summary-card"
+            >
+                <span>
+                    Cuentas
+                </span>
+
+                <strong>
+                    ${totalCuentas}
+                </strong>
+            </article>
+
+
+            <article
+                class="summary-card"
+            >
+                <span>
+                    Movimientos
+                </span>
+
+                <strong>
+                    ${totalMovimientos}
+                </strong>
+            </article>
+
+        </section>
+
+
+        <section
+            class="dashboard-section"
+        >
+
+            <header
+                class="section-header"
+            >
+                <div>
+                    <span>
+                        Cuenta principal
+                    </span>
+
+                    <h3>
+                        Información bancaria
+                    </h3>
+                </div>
+            </header>
+
+
+            ${
+              cuentaPrincipal
+                ? `
+                        <article
+                            class="account-card"
+                        >
+                            <div>
+                                <span>
+                                    Número de cuenta
+                                </span>
+
+                                <strong>
+                                    ${formatAccountNumber(
+                                      cuentaPrincipal.numeroCuenta,
+                                    )}
+                                </strong>
+                            </div>
+
+
+                            <div>
+                                <span>
+                                    Tipo
+                                </span>
+
+                                <strong>
+                                    ${cuentaPrincipal.tipo}
+                                </strong>
+                            </div>
+
+
+                            <div>
+                                <span>
+                                    Saldo disponible
+                                </span>
+
+                                <strong>
+                                    ${formatCurrency(cuentaPrincipal.saldo)}
+                                </strong>
+                            </div>
+                        </article>
+                    `
+                : `
+                        <p>
+                            No tienes cuentas
+                            bancarias registradas.
+                        </p>
+                    `
+            }
+
+        </section>
+    `;
 }
 
-//Inicializar Logout(cerrar cesión)
-function inicializarLogout() {
-  //Obtener Botón
-  const logoutBtn = document.querySelector("#logoutBtn");
-  //Validar Botón
-  if (!logoutBtn) {
+function initLogout() {
+  const btn = document.querySelector("#logoutBtn");
+
+  if (!btn) {
     return;
   }
-  //Evento click
-  logoutBtn.addEventListener("click", () => {
-    //confirmar salida
+  //Esre botón nos servira para Cerrar sesión
+  btn.addEventListener("click", () => {
     Swal.fire({
       icon: "question",
       title: "Cerrar sesión",
@@ -36,30 +173,45 @@ function inicializarLogout() {
       confirmButtonText: "Sí, salir",
       cancelButtonText: "Cancelar",
     }).then((result) => {
-      //Cancelar
       if (!result.isConfirmed) {
         return;
       }
-      //cerrar sesión
+
       authService.logout();
-      //Volver al login
+
       window.location.href = "index.html";
     });
   });
 }
 
-//Inicializar Dashboard
 function init() {
-  //proteger ruta
   const accesoPermitido = authService.protegerRuta();
-  //Detener sin acceso
+
   if (!accesoPermitido) {
     return;
   }
-  //Mosatrr usuario
-  mostrarUsuario();
-  //activarLogout
-  inicializarLogout();
+
+  const usuario = authService.getCurrentUser();
+
+  if (!usuario) {
+    return;
+  }
+  //Usamos try-catch
+  try {
+    bancoService.recargarBanco();
+
+    const resumen = bancoService.obtenerResumenUsuario(usuario.id);
+
+    renderDashboard(resumen);
+
+    initLogout();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "No fue posible cargar el dashboard",
+      text: error.message,
+    });
+  }
 }
-//ejecutamos
-init();
+
+init(); //<- es importante que esta inicializada la aplicación

@@ -56,7 +56,72 @@ Durante las siguientes versiones se desarrollarán:
 
 ## Modelos
 
-### Banco.js
+### Usuario
+
+Representa a una persona registrada en el sistema.
+
+### Cuenta
+
+Representa una cuenta bancaria perteneciente a un usuario.
+
+### Movimiento
+
+Representa una operación bancaria.
+
+### Banco
+
+Coordina usuarios, cuentas y movimientos y contiene reglas del dominio bancario.
+
+## Services
+
+### StorageService
+
+Centraliza la comunicación con LocalStorage.
+
+Métodos principales:
+
+- `guardar()`
+- `obtener()`
+- `eliminar()`
+- `limpiar()`
+
+### AuthService
+
+Gestiona autenticación y sesión.
+
+Métodos principales:
+
+- `login()`
+- `logout()`
+- `getCurrentUser()`
+- `protegerRuta()`
+
+### BancoService
+
+Conecta los datos persistidos con los modelos del dominio.
+
+Métodos principales:
+
+- `cargarBanco()`
+- `obtenerInstanciaBanco()`
+- `recargarBanco()`
+- `guardarBanco()`
+- `obtenerDatosUsuario()`
+- `obtenerResumenUsuario()`
+
+## Dashboard
+
+El dashboard permite mostrar información correspondiente al usuario autenticado.
+
+Actualmente muestra:
+
+- Nombre del usuario.
+- Saldo total.
+- Cantidad de cuentas.
+- Cantidad de movimientos.
+- Número de cuenta principal.
+- Tipo de cuenta.
+- Saldo disponible.
 
 Sus responsabilidades:
 
@@ -72,4 +137,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.6.0 — Registro, autenticación, sesión y SweetAlert2.
+v0.7.0 — BancoService y Dashboard bancario.

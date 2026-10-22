@@ -1,23 +1,22 @@
-/* Hace que padding y border formen parte del tamaño total del elemento */
+/* =========================================
+RESET Y ESTILOS GENERALES
+========================================= */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* =========================================
-    CONFIGURACIÓN GENERAL DE LA PÁGINA
-========================================= */
 body {
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f4f6f8;
   color: #1f2937;
 }
-
 /* =========================================
-      AUTENTICACIÓN
+AUTENTICACIÓN
 ========================================= */
+
 .auth-page {
   min-height: 100vh;
   padding: 48px 24px;
@@ -34,14 +33,17 @@ body {
   font-size: 2rem;
 }
 
+.auth-header p,
+.auth-header span {
+  color: #6b7280;
+}
+
 .auth-header p {
   margin-bottom: 8px;
-  color: #6b7280;
 }
 
 .auth-header span {
   font-size: 0.9rem;
-  color: #6b7280;
 }
 
 .auth-container {
@@ -62,6 +64,9 @@ body {
 .auth-card h2 {
   margin-bottom: 24px;
 }
+/* =========================================
+FORMULARIOS
+========================================= */
 
 .form-group {
   margin-bottom: 18px;
@@ -73,18 +78,24 @@ body {
   font-weight: 600;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
+  background-color: #ffffff;
   font-size: 1rem;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: 2px solid #2563eb;
   border-color: transparent;
 }
+/* =========================================
+BOTONES
+========================================= */
 
 .btn {
   display: inline-flex;
@@ -108,70 +119,273 @@ body {
   background-color: #1d4ed8;
 }
 
-/* =========================================
-          RESPONSIVE
-========================================= */
-@media (max-width: 768px) {
-  .auth-container {
-    grid-template-columns: 1fr;
-  }
-  .auth-page {
-    padding: 32px 16px;
-  }
+.btn-secondary {
+  background-color: #111827;
+  color: #ffffff;
 }
 
-/* =========================================
-    CONTENEDOR PRINCIPAL
+.btn-secondary:hover {
+  background-color: #374151;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+} /* =========================================
+CABECERA Y NAVEGACIÓN
 ========================================= */
-.app {
-  min-height: 100vh;
+
+.topbar {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 24px;
-  text-align: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px clamp(20px, 5vw, 72px);
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topbar h1 {
+  margin-bottom: 4px;
+  font-size: 1.5rem;
+}
+
+.topbar p {
+  color: #6b7280;
+}
+
+.dashboard-nav {
+  display: flex;
+  gap: 12px;
+  padding: 14px clamp(20px, 5vw, 72px);
+  overflow-x: auto;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard-nav a {
+  padding: 9px 14px;
+  color: #374151;
+  text-decoration: none;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.dashboard-nav a:hover,
+.dashboard-nav a.active {
+  background-color: #eff6ff;
+  color: #1d4ed8;
 }
 /* =========================================
-    TÍTULO PRINCIPAL
+DASHBOARD
 ========================================= */
-.app h1 {
-  font-size: 2rem;
-}
-/* =========================================
-      PÁRRAFOS
-========================================= */
-.app p {
-  font-size: 1rem;
-}
-/* =========================================
-  DASHBOARD SIMPLE
-========================================= */
-.dashboard-page {
+
+.app-dashboard,
+.app-cuenta {
   min-height: 100vh;
   background-color: #f4f6f8;
 }
-/* =========================================
-  CONTENEDOR DASHBOARD
-========================================= */
-.dashboard-simple {
-  width: min(900px, 90%);
-  margin: 60px auto;
-  padding: 32px;
+
+.dashboard-content {
+  width: min(1100px, 92%);
+  margin: 32px auto;
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-welcome,
+.dashboard-section {
+  padding: 28px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-label {
+  margin-bottom: 6px;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.dashboard-welcome h2 {
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+}
+
+.dashboard-welcome p,
+.section-header span {
+  color: #6b7280;
+}
+
+.summary-grid,
+.account-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card span,
+.account-card span {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.summary-card strong {
+  font-size: 1.6rem;
+}
+
+.section-header {
+  margin-bottom: 22px;
+}
+
+.section-header span,
+.account-card span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.account-card div {
+  padding: 18px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
 }
 /* =========================================
-   TÍTULO DASHBOARD
+MI CUENTA
 ========================================= */
-.dashboard-simple h1 {
-  margin-bottom: 16px;
+
+.cuenta-content {
+  width: min(1100px, 92%);
+  margin: 32px auto;
 }
-/* =========================================
-   PÁRRAFOS DASHBOARD
-========================================= */
-.dashboard-simple p {
+
+.cuenta-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.cuenta-card,
+.cuenta-section {
+  padding: 28px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.cuenta-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
+}
+
+.cuenta-meta {
+  color: #6b7280;
+}
+
+.cuenta-detalle {
+  display: grid;
+  gap: 14px;
+}
+
+.cuenta-detalle p {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cuenta-detalle p:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+/* =========================================
+INDICADORES DE ESTADO
+========================================= */
+
+.badge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.badge-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+/* =========================================
+PANEL DE ADMINISTRACIÓN DE CUENTA
+========================================= */
+
+.cuenta-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.cuenta-section h3 {
+  margin-bottom: 22px;
+}
+
+.field-error {
+  min-height: 18px;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+/* =========================================
+ZONA DE PELIGRO
+========================================= */
+
+.cuenta-section-danger {
+  border: 1px solid #fecaca;
+}
+
+.cuenta-section-danger h3,
+.cuenta-warning {
+  color: #7f1d1d;
+}
+
+.cuenta-warning {
+  margin-bottom: 18px;
+}
+/* =========================================
+ESTE ES EL RESPONSIVE GENERAL
+========================================= */
+@media (max-width: 768px) {
+  .auth-container,
+  .summary-grid,
+  .account-card,
+  .cuenta-layout {
+    grid-template-columns: 1fr;
+  }
+  /* Reducimos el espacio exterior de autenticación */
+  .auth-page {
+    padding: 32px 16px;
+  }
+  .topbar,
+  .cuenta-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

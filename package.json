@@ -1,10 +1,10 @@
 {
-  "name": "proyecto-modulo-4-",
-  "version": "0.6.0",
+  "name": "proyecto-modulo-4",
+  "version": "0.7.0",
   "description": "Proyecto integrador Modulo 4 - Sistema de Gestion Bancaria",
   "main": "js/main.js",
   "type": "module",
   "scripts": {},
-  "author": "Luz Elena Ruiz ",
+  "author": "Juan Suarez",
   "license": "ISC"
 }
