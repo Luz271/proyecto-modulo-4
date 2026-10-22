@@ -63,4 +63,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.4.0 — Modelo Banco y reglas del dominio bancario.
+v0.5.0 — Persistencia con LocalStorage y StorageService.
