@@ -25,6 +25,15 @@ El proyecto utilizará las siguientes capas:
 - UI
 - Utils
 - Tests
+- AuthService
+- registro
+- login
+- logout
+- sesión
+- SweetAlert2
+- DOM
+- eventos
+- dashboard.html
 
 ## Funcionalidades previstas
 
@@ -63,4 +72,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.5.0 — Persistencia con LocalStorage y StorageService.
+v0.6.0 — Registro, autenticación, sesión y SweetAlert2.

@@ -7,17 +7,81 @@
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body>
-    <main class="app">
-      <!-- Nombre principal de la aplicación -->
-      <h1>Sistema de Gestión Bancaria</h1>
-      <!-- Identificación del proyecto -->
-      <p>Proyecto Integrador — Módulo 4</p>
+    <!-- PÁGINA DE AUTENTICACIÓN -->
+    <main class="auth-page">
+      <header class="auth-header">
+        <h1>Sistema de Gestión Bancaria</h1>
+        <p>Accede o crea una cuenta para continuar</p>
+        <span>Versión v0.6.0</span>
+      </header>
 
-      <p>Versión v0.5.0</p>
+      <!-- CONTENEDOR DE FORMULARIO -->
+      <section class="auth-container">
+        <!-- Article: Iniciar Sesión -->
+        <article class="auth-card">
+          <h2>Iniciar sesión</h2>
+          <form id="formLogin" novalidate>
+            <div class="form-group">
+              <label for="loginEmail">Correo electrónico</label>
+              <input type="email" id="loginEmail" autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Contraseña</label>
+              <input
+                type="password"
+                id="loginPassword"
+                autocomplete="current-password"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">
+              Iniciar sesión
+            </button>
+          </form>
+        </article>
+
+        <!-- Article: Crear Cuenta -->
+        <article class="auth-card">
+          <h2>Crear cuenta</h2>
+          <form id="formRegistro" novalidate>
+            <div class="form-group">
+              <label for="registroNombre">Nombre completo</label>
+              <input type="text" id="registroNombre" />
+            </div>
+            <div class="form-group">
+              <label for="registroEmail">Correo electrónico</label>
+              <input type="email" id="registroEmail" autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label for="registroTelefono">Teléfono</label>
+              <input type="tel" id="registroTelefono" />
+            </div>
+            <div class="form-group">
+              <label for="registroPassword">Contraseña</label>
+              <input
+                type="password"
+                id="registroPassword"
+                autocomplete="new-password"
+              />
+            </div>
+            <div class="form-group">
+              <label for="registroConfirmPassword">Confirmar contraseña</label>
+              <input
+                type="password"
+                id="registroConfirmPassword"
+                autocomplete="new-password"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Crear cuenta</button>
+          </form>
+        </article>
+      </section>
     </main>
-    <!-- =========================================
-Conectamos el archivo con main.js
-========================================== -->
+
+    <!-- Librerías externas y/o SWEETALERT2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Módulo principal JavaScript -->
     <script type="module" src="./js/main.js"></script>
   </body>
 </html>
+//664
