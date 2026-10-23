@@ -137,4 +137,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.7.0 — BancoService y Dashboard bancario.
+v0.8.0 — Gestión de cuenta, perfil y seguridad.
