@@ -1,3 +1,4 @@
+//importamos
 import { Banco } from "../models/Banco.js";
 
 import { Usuario } from "../models/Usuario.js";
@@ -9,17 +10,9 @@ import { Movimiento } from "../models/Movimiento.js";
 import { STORAGE_KEYS, storageService } from "./StorageService.js";
 
 class BancoService {
-  /* =========================================
-       CONSTRUCTOR
-    ========================================= */
-
   constructor() {
     this._banco = null;
   }
-
-  /* =========================================
-       CARGA Y PERSISTENCIA DEL BANCO
-    ========================================= */
 
   cargarBanco() {
     const usuariosGuardados = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -31,8 +24,8 @@ class BancoService {
       [],
     );
 
-    // Reconstruimos las instancias para
-    // recuperar también sus métodos.
+    // Reconstruimos los objetos almacenados
+    // como instancias reales de nuestros modelos.
     const usuarios = usuariosGuardados.map((usuario) => new Usuario(usuario));
 
     const cuentas = cuentasGuardadas.map((cuenta) => new Cuenta(cuenta));
@@ -41,6 +34,8 @@ class BancoService {
       (movimiento) => new Movimiento(movimiento),
     );
 
+    // Creamos nuevamente la instancia
+    // completa del Banco.
     this._banco = new Banco({
       usuarios,
       cuentas,
@@ -51,6 +46,8 @@ class BancoService {
   }
 
   obtenerInstanciaBanco() {
+    // Si todavía no tenemos el Banco
+    // cargado lo reconstruimos.
     if (!this._banco) {
       return this.cargarBanco();
     }
@@ -59,6 +56,8 @@ class BancoService {
   }
 
   recargarBanco() {
+    // Eliminamos la referencia actual para
+    // forzar una nueva lectura de LocalStorage.
     this._banco = null;
 
     return this.cargarBanco();
@@ -67,6 +66,8 @@ class BancoService {
   guardarBanco() {
     const banco = this.obtenerInstanciaBanco();
 
+    // Persistimos cada colección utilizando
+    // StorageService.
     storageService.guardar(STORAGE_KEYS.USUARIOS, banco.usuarios);
 
     storageService.guardar(STORAGE_KEYS.CUENTAS, banco.cuentas);
@@ -76,31 +77,47 @@ class BancoService {
     return true;
   }
 
-  /* =========================================
-       CONSULTAS DEL USUARIO
-    ========================================= */
-
   obtenerDatosUsuario(usuarioId) {
     const banco = this.obtenerInstanciaBanco();
 
+    // Localizamos al usuario.
     const usuario = banco.buscarUsuarioPorId(usuarioId);
 
     if (!usuario) {
       throw new Error("El usuario no existe.");
     }
 
+    // Obtenemos todas las cuentas
+    // pertenecientes al usuario.
     const cuentas = banco.obtenerCuentasDeUsuario(usuarioId);
 
-    const movimientosSinFiltrar = cuentas.flatMap((cuenta) =>
-      banco.obtenerMovimientosDeCuenta(cuenta.id),
-    );
+    // Obtenemos únicamente los IDs
+    // de las cuentas del usuario.
+    const cuentasIds = cuentas.map((cuenta) => cuenta.id);
 
-    // Evitamos que un mismo movimiento
-    // sea incluido más de una vez.
-    const movimientos = movimientosSinFiltrar.filter(
-      (movimiento, index, array) =>
-        index === array.findIndex((item) => item.id === movimiento.id),
-    );
+    // Filtramos los movimientos desde la
+    // perspectiva correcta del usuario.
+    const movimientos = banco.movimientos.filter((movimiento) => {
+      // Un depósito pertenece al
+      // propietario de la cuenta.
+      if (movimiento.tipo === "DEPOSITO") {
+        return cuentasIds.includes(movimiento.cuentaOrigen);
+      }
+
+      // Una transferencia enviada
+      // pertenece a la cuenta origen.
+      if (movimiento.tipo === "TRANSFERENCIA_ENVIADA") {
+        return cuentasIds.includes(movimiento.cuentaOrigen);
+      }
+
+      // Una transferencia recibida
+      // pertenece a la cuenta destino.
+      if (movimiento.tipo === "TRANSFERENCIA_RECIBIDA") {
+        return cuentasIds.includes(movimiento.cuentaDestino);
+      }
+
+      return false;
+    });
 
     return {
       usuario,
@@ -113,6 +130,8 @@ class BancoService {
     const { usuario, cuentas, movimientos } =
       this.obtenerDatosUsuario(usuarioId);
 
+    // Sumamos el saldo disponible en
+    // todas las cuentas del usuario.
     const saldoTotal = cuentas.reduce(
       (acumulado, cuenta) => acumulado + Number(cuenta.saldo),
       0,
@@ -123,26 +142,71 @@ class BancoService {
       cuentas,
       movimientos,
       saldoTotal,
+
       totalCuentas: cuentas.length,
+
       totalMovimientos: movimientos.length,
     };
   }
 
-  /* =========================================
-       OPERACIONES BANCARIAS
-    ========================================= */
+  obtenerMovimientosUsuario(usuarioId, tipo = "TODOS") {
+    const { movimientos } = this.obtenerDatosUsuario(usuarioId);
+
+    // Creamos una copia porque sort()
+    // modifica directamente el array.
+    let resultado = [...movimientos];
+
+    // Si existe un filtro específico
+    // dejamos únicamente ese tipo.
+    if (tipo !== "TODOS") {
+      resultado = resultado.filter((movimiento) => movimiento.tipo === tipo);
+    }
+
+    // Ordenamos de la operación más
+    // reciente a la más antigua.
+    resultado.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    return resultado;
+  }
+
+  obtenerResumenMovimientos(usuarioId) {
+    const movimientos = this.obtenerMovimientosUsuario(usuarioId);
+
+    // Contamos depósitos.
+    const depositos = movimientos.filter(
+      (movimiento) => movimiento.tipo === "DEPOSITO",
+    ).length;
+
+    // Contamos transferencias enviadas.
+    const enviadas = movimientos.filter(
+      (movimiento) => movimiento.tipo === "TRANSFERENCIA_ENVIADA",
+    ).length;
+
+    // Contamos transferencias recibidas.
+    const recibidas = movimientos.filter(
+      (movimiento) => movimiento.tipo === "TRANSFERENCIA_RECIBIDA",
+    ).length;
+
+    return {
+      total: movimientos.length,
+      depositos,
+      enviadas,
+      recibidas,
+    };
+  }
 
   realizarDeposito({ cuentaId, monto, descripcion = "" }) {
     const banco = this.obtenerInstanciaBanco();
 
+    // El modelo Banco realiza la operación
+    // y genera el movimiento.
     const movimiento = banco.realizarDeposito({
       cuentaId,
       monto,
       descripcion,
     });
 
-    // Guardamos el nuevo saldo y
-    // el movimiento generado.
+    // Persistimos el nuevo estado.
     this.guardarBanco();
 
     return movimiento;
@@ -156,33 +220,34 @@ class BancoService {
   }) {
     const banco = this.obtenerInstanciaBanco();
 
-    // Permitimos que el usuario escriba
-    // el número con o sin espacios.
+    // Eliminamos espacios del número de
+    // cuenta ingresado por el usuario.
     const numeroDestino = String(numeroCuentaDestino).replace(/\s/g, "").trim();
 
+    // Buscamos la cuenta utilizando
+    // su número visible.
     const cuentaDestino = banco.buscarCuentaPorNumero(numeroDestino);
 
     if (!cuentaDestino) {
       throw new Error("La cuenta destino no existe.");
     }
 
+    // Delegamos las reglas financieras
+    // al modelo Banco.
     const resultado = banco.realizarTransferencia({
       cuentaOrigenId,
+
       cuentaDestinoId: cuentaDestino.id,
+
       monto,
       descripcion,
     });
 
-    // Persistimos ambos saldos y los
-    // dos movimientos generados.
+    // Persistimos saldos y movimientos.
     this.guardarBanco();
 
     return resultado;
   }
-
-  /* =========================================
-       ACTUALIZAR USUARIO
-    ========================================= */
 
   actualizarUsuario(usuarioId, { nombre, email, telefono }) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -193,8 +258,12 @@ class BancoService {
       throw new Error("El usuario no existe.");
     }
 
+    // Normalizamos el correo antes
+    // de realizar comparaciones.
     const emailNormalizado = String(email).trim().toLowerCase();
 
+    // Buscamos si otro usuario utiliza
+    // el mismo correo.
     const emailDuplicado = usuarios.some(
       (item) =>
         item.email.toLowerCase() === emailNormalizado && item.id !== usuarioId,
@@ -204,12 +273,17 @@ class BancoService {
       throw new Error("Ya existe un usuario con este correo.");
     }
 
+    // Utilizamos map() y Spread Operator
+    // para construir el nuevo array.
     const usuariosActualizados = usuarios.map((item) =>
       item.id === usuarioId
         ? {
             ...item,
+
             nombre: nombre.trim(),
+
             email: emailNormalizado,
+
             telefono: telefono.trim(),
           }
         : item,
@@ -221,10 +295,6 @@ class BancoService {
 
     return usuariosActualizados.find((item) => item.id === usuarioId) || null;
   }
-
-  /* =========================================
-       CAMBIO DE CONTRASEÑA
-    ========================================= */
 
   cambiarPassword(usuarioId, passwordActual, passwordNueva) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -251,6 +321,7 @@ class BancoService {
       item.id === usuarioId
         ? {
             ...item,
+
             password: passwordNueva,
           }
         : item,
@@ -262,10 +333,6 @@ class BancoService {
 
     return true;
   }
-
-  /* =========================================
-       ELIMINAR USUARIO
-    ========================================= */
 
   eliminarUsuario(usuarioId) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -284,6 +351,8 @@ class BancoService {
       (cuenta) => cuenta.usuarioId === usuarioId,
     );
 
+    // Un usuario con saldo disponible
+    // no puede eliminar sus cuentas.
     const tieneSaldo = cuentasUsuario.some(
       (cuenta) => Number(cuenta.saldo) > 0,
     );
@@ -296,12 +365,16 @@ class BancoService {
 
     const cuentasUsuarioIds = cuentasUsuario.map((cuenta) => cuenta.id);
 
+    // Eliminamos al usuario.
     const usuariosFiltrados = usuarios.filter((item) => item.id !== usuarioId);
 
+    // Eliminamos sus cuentas.
     const cuentasFiltradas = cuentas.filter(
       (cuenta) => cuenta.usuarioId !== usuarioId,
     );
 
+    // Eliminamos movimientos relacionados
+    // con cualquiera de sus cuentas.
     const movimientosFiltrados = movimientos.filter(
       (movimiento) =>
         !cuentasUsuarioIds.includes(movimiento.cuentaOrigen) &&

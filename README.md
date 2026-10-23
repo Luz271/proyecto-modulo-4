@@ -137,4 +137,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.9.0 — Operaciones bancarias y transferencias.
+v0.10.0 — Historial de movimientos y filtros.
