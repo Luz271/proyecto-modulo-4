@@ -137,4 +137,4 @@ Sus responsabilidades:
 
 ## Versión actual
 
-v0.8.0 — Gestión de cuenta, perfil y seguridad.
+v0.9.0 — Operaciones bancarias y transferencias.

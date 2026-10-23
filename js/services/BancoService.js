@@ -1,4 +1,3 @@
-//Importamos
 import { Banco } from "../models/Banco.js";
 
 import { Usuario } from "../models/Usuario.js";
@@ -8,31 +7,40 @@ import { Cuenta } from "../models/Cuenta.js";
 import { Movimiento } from "../models/Movimiento.js";
 
 import { STORAGE_KEYS, storageService } from "./StorageService.js";
-//CREAMOS EL SERVICIO BANCARIO
+
 class BancoService {
+  /* =========================================
+       CONSTRUCTOR
+    ========================================= */
+
   constructor() {
     this._banco = null;
   }
 
+  /* =========================================
+       CARGA Y PERSISTENCIA DEL BANCO
+    ========================================= */
+
   cargarBanco() {
-    // Recupera los usuarios almacenados.
     const usuariosGuardados = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
-    // Recupera las cuentas almacenadas.
+
     const cuentasGuardadas = storageService.obtener(STORAGE_KEYS.CUENTAS, []);
-    // Recupera los movimientos almacenados.
+
     const movimientosGuardados = storageService.obtener(
       STORAGE_KEYS.MOVIMIENTOS,
       [],
     );
-    // instancia real de Usuario.
+
+    // Reconstruimos las instancias para
+    // recuperar también sus métodos.
     const usuarios = usuariosGuardados.map((usuario) => new Usuario(usuario));
-    // Reconstruye cada cuenta para recuperar sus métodos
+
     const cuentas = cuentasGuardadas.map((cuenta) => new Cuenta(cuenta));
-    // Reconstruye los movimientos utilizando la clase Movimiento
+
     const movimientos = movimientosGuardados.map(
       (movimiento) => new Movimiento(movimiento),
     );
-    // Construye una instancia de Banco utilizando las colecciones reconstruidas.
+
     this._banco = new Banco({
       usuarios,
       cuentas,
@@ -41,64 +49,66 @@ class BancoService {
 
     return this._banco;
   }
-  //CREAMOS obtenerInstanciaBanco()
+
   obtenerInstanciaBanco() {
-    //Devuleve la instancia actual si no existe la carga primero
     if (!this._banco) {
       return this.cargarBanco();
     }
-    // Si ya existe, reutiliza la instancia.
+
     return this._banco;
   }
-  //CREAMOS recargarBanco()
-  //Esto obligara al servicio a reconstruir nuevamente el banco usando la informacion persistida
+
   recargarBanco() {
-    //Esto obligara al servicio a reconstruir nuevamente el banco usando la informacion persistida
     this._banco = null;
+
     return this.cargarBanco();
   }
-  //Crear GuardarBanco()
+
   guardarBanco() {
     const banco = this.obtenerInstanciaBanco();
-    //Ahora guardaremos a los usuarios
+
     storageService.guardar(STORAGE_KEYS.USUARIOS, banco.usuarios);
-    //Ahora creamos guardar cuentas
+
     storageService.guardar(STORAGE_KEYS.CUENTAS, banco.cuentas);
-    //Ahora creamos guardar movimientos
+
     storageService.guardar(STORAGE_KEYS.MOVIMIENTOS, banco.movimientos);
-    //Ahora agregamos un return el cual indica que la operacion termino
+
     return true;
   }
-  //Ahora creamoos obntenerusuario
+
+  /* =========================================
+       CONSULTAS DEL USUARIO
+    ========================================= */
+
   obtenerDatosUsuario(usuarioId) {
     const banco = this.obtenerInstanciaBanco();
-    // Busca al usuario utilizando una regla que ya existe
+
     const usuario = banco.buscarUsuarioPorId(usuarioId);
-    // En caso de que el usuario no existe detenemos la operación mediante una excepción.
+
     if (!usuario) {
       throw new Error("El usuario no existe.");
     }
-    //Ahora agragremos const cuentas para que nos ayude a obtener unicamente las cuentas pertenecientes al usuaio
+
     const cuentas = banco.obtenerCuentasDeUsuario(usuarioId);
 
-    //Ahora bien eliminaremos los movimientos duplicados con filter
     const movimientosSinFiltrar = cuentas.flatMap((cuenta) =>
       banco.obtenerMovimientosDeCuenta(cuenta.id),
     );
 
+    // Evitamos que un mismo movimiento
+    // sea incluido más de una vez.
     const movimientos = movimientosSinFiltrar.filter(
       (movimiento, index, array) =>
         index === array.findIndex((item) => item.id === movimiento.id),
     );
-    //Agrupamos información
+
     return {
       usuario,
       cuentas,
       movimientos,
     };
   }
-  //Ahora creamos obtenerResumenDeUsuario()
-  //Este nos ayudara c construir un resumen listo para que el dasboard lo consuma
+
   obtenerResumenUsuario(usuarioId) {
     const { usuario, cuentas, movimientos } =
       this.obtenerDatosUsuario(usuarioId);
@@ -117,14 +127,70 @@ class BancoService {
       totalMovimientos: movimientos.length,
     };
   }
-  //esta instrucción me ayudara a actualizar el usuariu
+
+  /* =========================================
+       OPERACIONES BANCARIAS
+    ========================================= */
+
+  realizarDeposito({ cuentaId, monto, descripcion = "" }) {
+    const banco = this.obtenerInstanciaBanco();
+
+    const movimiento = banco.realizarDeposito({
+      cuentaId,
+      monto,
+      descripcion,
+    });
+
+    // Guardamos el nuevo saldo y
+    // el movimiento generado.
+    this.guardarBanco();
+
+    return movimiento;
+  }
+
+  realizarTransferencia({
+    cuentaOrigenId,
+    numeroCuentaDestino,
+    monto,
+    descripcion = "",
+  }) {
+    const banco = this.obtenerInstanciaBanco();
+
+    // Permitimos que el usuario escriba
+    // el número con o sin espacios.
+    const numeroDestino = String(numeroCuentaDestino).replace(/\s/g, "").trim();
+
+    const cuentaDestino = banco.buscarCuentaPorNumero(numeroDestino);
+
+    if (!cuentaDestino) {
+      throw new Error("La cuenta destino no existe.");
+    }
+
+    const resultado = banco.realizarTransferencia({
+      cuentaOrigenId,
+      cuentaDestinoId: cuentaDestino.id,
+      monto,
+      descripcion,
+    });
+
+    // Persistimos ambos saldos y los
+    // dos movimientos generados.
+    this.guardarBanco();
+
+    return resultado;
+  }
+
+  /* =========================================
+       ACTUALIZAR USUARIO
+    ========================================= */
+
   actualizarUsuario(usuarioId, { nombre, email, telefono }) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
 
     const usuario = usuarios.find((item) => item.id === usuarioId);
 
     if (!usuario) {
-      throw new Error("El usuario no existe."); //en caso de que el usuario no exista mostrara ese mensaje
+      throw new Error("El usuario no existe.");
     }
 
     const emailNormalizado = String(email).trim().toLowerCase();
@@ -155,6 +221,10 @@ class BancoService {
 
     return usuariosActualizados.find((item) => item.id === usuarioId) || null;
   }
+
+  /* =========================================
+       CAMBIO DE CONTRASEÑA
+    ========================================= */
 
   cambiarPassword(usuarioId, passwordActual, passwordNueva) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -192,6 +262,10 @@ class BancoService {
 
     return true;
   }
+
+  /* =========================================
+       ELIMINAR USUARIO
+    ========================================= */
 
   eliminarUsuario(usuarioId) {
     const usuarios = storageService.obtener(STORAGE_KEYS.USUARIOS, []);
@@ -245,5 +319,5 @@ class BancoService {
     return true;
   }
 }
-//Ahora agregamos el export para poder importar a otro file
+
 export const bancoService = new BancoService();
